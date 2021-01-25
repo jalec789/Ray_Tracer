@@ -22,16 +22,44 @@ Render_World::~Render_World()
 // to ensure that hit.dist>=small_t.
 Hit Render_World::Closest_Intersection(const Ray& ray)
 {
-    TODO;
-    return {};
+    //TODO;
+    double min_t = std::numeric_limits<double>::max();
+    
+    Hit closest_hit;
+    closest_hit.object = NULL;
+    
+    Hit hit;
+    hit.object = NULL;
+    
+    int o = objects.size();
+    //for all objects check for hits with ray
+    for(int i = 0; i < o; i++){
+    	//Intersection: ray, part (make part<0 ie. -1)(for specific parts make part=0)
+    	hit = objects[i]->Intersection(ray,-1);
+    	
+    	if(hit.object != NULL){
+    		if(hit.dist < min_t && hit.dist >= small_t){
+    			closest_hit = hit;
+    			min_t = hit.dist;
+    		}
+    	}
+    }
+    
+    return closest_hit;
 }
 
 // set up the initial view ray and call
 void Render_World::Render_Pixel(const ivec2& pixel_index)
 {
-    TODO; // set up the initial view ray here
+    //TODO; // set up the initial view ray here
     Ray ray;
-    vec3 color=Cast_Ray(ray,1);
+    
+    vec3 direction = (camera.World_Position(pixel_index) - camera.position).normalized();
+    
+    ray.endpoint = camera.position;
+    ray.direction = direction;
+    
+    vec3 color = Cast_Ray(ray,1);
     camera.Set_Pixel(pixel_index,Pixel_Color(color));
 }
 
@@ -50,7 +78,24 @@ void Render_World::Render()
 vec3 Render_World::Cast_Ray(const Ray& ray,int recursion_depth)
 {
     vec3 color;
-    TODO; // determine the color here
+    //TODO; // determine the color here
+    //gives the intersected object
+    Hit hit = Closest_Intersection(ray);
+    
+    if(hit.object != NULL){
+    	//want to return the color of the object
+    	//from flat_shader.cpp we can get the color from
+    	//Shade_Surface which returns vec3 color
+    	color = hit.object->material_shader->Shade_Surface(ray,
+    		ray.Point(hit.dist),
+    		hit.object->Normal(ray.Point(hit.dist), hit.part),
+    		recursion_depth);
+    }
+    
+    //from piazza thread: Using pixel trace to debug
+    if(debug_pixel){
+    	std::cout << "cast ray: end = " << ray.endpoint << "; dir = " << ray.direction << std::endl;
+    }
     return color;
 }
 
