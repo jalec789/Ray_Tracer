@@ -25,5 +25,5 @@ scons -c
 ```
 ### Run grading script
 ```
-./grading-script.py
+./grading-script.py .
 ```
